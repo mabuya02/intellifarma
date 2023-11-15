@@ -1,9 +1,4 @@
-Certainly! Here's a template for your `README.md` file. Copy and paste this into your project's root directory and make the necessary modifications:
-
-```markdown
-# Your Project Name
-
-Briefly describe your project here.
+# INTELLIFARMA
 
 ## Table of Contents
 
