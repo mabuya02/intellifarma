@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_migrate import Migrate
-from .routes import main_bp
+from app.routes import main_bp
 from app.database import db
 from dotenv import load_dotenv
 import os
@@ -21,6 +21,7 @@ def create_app():
 
     # Configure the app
     app.config.from_pyfile('config.py')
+
 
     # Initialize database and migration
     db.init_app(app)
