@@ -1,4 +1,4 @@
-from database import db
+from app import db
 
 from datetime import datetime
 
@@ -21,6 +21,7 @@ class User(db.Model):
     status = db.Column(db.Enum('Active', 'Inactive'), server_default='Active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
   
 
 
