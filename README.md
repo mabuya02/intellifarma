@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [Installation](#installation)
+- [Database Setup](#database-setup)
 - [Directory Structure](#directory-structure)
 - [Contributing](#contributing)
 - [License](#license)
@@ -42,27 +43,51 @@
    ```
    python3 secret.py
    ```
+# Database Setup
+SQLite (Default)
+By default, the project uses SQLite as its database. No additional setup is required for SQLite.
 
+PostgreSQL
+If you want to use PostgreSQL as your database, follow these steps:
 
+Install PostgreSQL on your machine.
+
+Create a PostgreSQL database for your project.
+
+Update the DATABASE_URL in your project's configuration. For example, in your .env file or as an environment variable:
+```
+DATABASE_URL=postgresql://your-username:your-password@localhost/your-database
+```
+Run the database migrations:
+```
+flask db upgrade
+```
 
 ## Directory Structure
-
-Explain the organization of your project's directory. For example:
-
-```plaintext
-your-project/
+```plaintext 
+intellifarma/
 │
-├── your_module/
+├── app/
+│   ├── __pycache__/
 │   ├── __init__.py
-│   ├── module_file.py
+│   ├── db_operations.py
+│   ├── models.py
+│   ├── routes.py
+│   ├── services.py
 │
-├── tests/
-│   ├── test_module.py
+├── migrations/
 │
-├── your_script.py
-├── requirements.txt
-├── README.md
+├── venv/
+│
+├── .env
+├── .env.example
 ├── .gitignore
+├── config.py
+├── LICENSE
+├── README.md
+├── requirements.txt
+├── run.py
+├── secret.py
 ```
 
 ## Contributing
@@ -79,5 +104,3 @@ If you would like to contribute to the project, follow these steps:
 
 This project is licensed under the [Your License Name] - see the [LICENSE.md](LICENSE.md) file for details.
 ```
-
-Remember to replace placeholders like `Your Project Name`, `your-username`, `your-project`, `your_module`, `your_script`, etc., with your actual project details. Also, specify the license you are using in the `[Your License Name]` section and include the license file (`LICENSE.md`) if applicable.
