@@ -1,125 +1,87 @@
+import datetime
 from flask import jsonify, request
 from app import app
-from app.db_operations import get_all_users
-from app.services import add_crop_details, add_soil_parameters, login_user, logout_user, register_user
+# from app.db_operations import get_all_users
+from app.models import Session, User
+from app import db 
+from werkzeug.security import generate_password_hash
+# from app.services import add_crop_details, add_soil_parameters, login_user, logout_user, register_user
 
 
+@app.route('/login', methods=['POST'])
+def login_user():
+    data = request.get_json()
 
-@app.route('/')
-def hello_world():
-    print("Root route accessed!")
-    return 'Hello World'
+    # Check if the required fields are present
+    if not all(field in data for field in ['email', 'password']):
+        return jsonify({'error': 'Missing fields'}), 400
 
-@app.route('/api/login', methods=['POST'])
-def api_login_user():
+    email = data['email']
+    password = data['password']
+
+    # Find the user by their email
+    user = User.query.filter_by(email=email).first()
+
+    # If the user doesn't exist or the password is incorrect, return an error
+    if not user or not user.check_password(password):
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+    # Create a session for the user
+    Session['user_id'] = user.id
+
+    # Save the session in the database
+    new_session = Session(
+        user_id=user.id,
+        login_timestamp=datetime.utcnow()
+    )
+    db.session.add(new_session)
+    db.session.commit()
+
+    return jsonify({'message': 'Logged in successfully'}), 200
+
+
+@app.route('/register', methods=['POST'])
+def register_user():
+    data = request.get_json()
+
+    # Perform validation
+    required_fields = ['First_name', 'last_name', 'password', 'email', 'contact_number', 'farmer_location']
+    if not all(field in data for field in required_fields):
+        return jsonify({'error': 'Missing fields'}), 400
+
+    # Additional validation (e.g., email format)
+    if not is_valid_email(data['email']):
+        return jsonify({'error': 'Invalid email format'}), 400
+
     try:
-        data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
+        # Check if the email already exists in the database
+        existing_user = User.query.filter_by(email=data['email']).first()
+        if existing_user:
+            return jsonify({'error': 'Email already exists'}), 409  # 409: Conflict
 
-        # Call the login function
-        authenticated_user, session = login_user(username, password)
-
-        return jsonify({'message': 'Login successful', 'user_id': authenticated_user.id, 'session_id': session.id}), 200
-
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 401
-
-@app.route('/api/register', methods=['POST'])
-def api_register_user():
-    try:
-        data = request.get_json()
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        password = data.get('password')
-        email = data.get('email')
-        contact_number = data.get('contact_number')
-        farm_location = data.get('farm_location')
-        enable_2fa = data.get('enable_2fa', False)  
-
-        # Call the register function
-        new_user = register_user(
-            first_name,
-            last_name,
-            password,
-            email,
-            contact_number=contact_number,
-            farm_location=farm_location,
-            enable_2fa=enable_2fa
+        # Create a new user object and save it to the database
+        new_user = User(
+            First_name=data['First_name'],
+            last_name=data['last_name'],
+            password=generate_password_hash(data['password']),  # Hashing the password
+            email=data['email'],
+            role_id=1,  # Default role ID for a farmer
+            contact_number=data['contact_number'],
+            farmer_location=data['farmer_location']
         )
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'message': 'User registered successfully'}), 201  # 201: Created
 
-        return jsonify({'message': 'Registration successful', 'user_id': new_user.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500  # 500: Internal Server Error
 
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-    
-@app.route('/api/add_soil_parameters', methods=['POST'])
-def api_add_soil_parameters():
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        nitrogen_level = data.get('nitrogen_level')
-        phosphorus_level = data.get('phosphorus_level')
-        potassium_level = data.get('potassium_level')
-        temperature = data.get('temperature')
-        humidity = data.get('humidity')
-        ph_level = data.get('ph_level')
-        rainfall = data.get('rainfall')
+def is_valid_email(email):
+    # Simple email format check (you can enhance this validation)
+    return '@' in email
 
-        # Call the function to add soil parameters
-        new_parameters = add_soil_parameters(
-            user_id,
-            nitrogen_level,
-            phosphorus_level,
-            potassium_level,
-            temperature,
-            humidity,
-            ph_level,
-            rainfall
-        )
 
-        return jsonify({'message': 'Soil parameters added successfully', 'parameters_id': new_parameters.id}), 201
-
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-
-@app.route('/api/add_crop_details', methods=['POST'])
-def api_add_crop_details():
-    try:
-        data = request.get_json()
-        crop_image = data.get('crop_image')
-        prediction_id = data.get('prediction_id')
-
-        # Call the function to add crop details
-        new_crop_details = add_crop_details(
-            crop_image,
-            prediction_id
-        )
-
-        return jsonify({'message': 'Crop details added successfully', 'crop_details_id': new_crop_details.id}), 201
-
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-
-@app.route('/api/users', methods=['GET'])
-def get_users():
-    users = get_all_users()
-    user_list = []
-    for user in users:
-        user_list.append({'id': user.id, 'First_name': user.First_name, 'email': user.email})
-    return jsonify({'users': user_list})
-
-# API endpoint for user logout
-@app.route('/api/logout', methods=['POST'])
-def api_logout_user():
-    try:
-        # Call the logout function
-        logout_user()
-
-        return jsonify({'message': 'Logout successful'}), 200
-
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 401
 
 if __name__ == '__main__':
     app.run(debug= True)

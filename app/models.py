@@ -1,11 +1,13 @@
-from app import db
-
+from . import db
 from datetime import datetime
+
 
 
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     role_name = db.Column(db.String(50), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,12 +45,18 @@ class SoilParameters(db.Model):
     humidity = db.Column(db.Float)
     ph_level = db.Column(db.Float)
     rainfall = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
 
 class CropDetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     crop_image = db.Column(db.String(255)) 
     prediction_id = db.Column(db.Integer, db.ForeignKey('crop_prediction.id'))
     prediction = db.relationship('CropPrediction', backref=db.backref('crop_details', lazy=True))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
 
 class CropPrediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,6 +64,9 @@ class CropPrediction(db.Model):
     parameters = db.relationship('SoilParameters', backref=db.backref('crop_prediction', lazy=True))
     predicted_crop_name = db.Column(db.String(50))
     prediction_date = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -66,3 +77,6 @@ class Review(db.Model):
     rating = db.Column(db.Integer)  
     review_text = db.Column(db.Text)
     review_date = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    
