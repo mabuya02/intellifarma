@@ -9,9 +9,9 @@ from werkzeug.security import check_password_hash
 main = Blueprint('main', __name__)
 api = Api(main)
 
-login_bp = Blueprint('login', __name__)
-# login_api = Api(login_bp)
 
+
+# --------------------------------------------------User registration-----------------------------------------------------------
 user_fields = {
     'id': fields.Integer,
     'First_name': fields.String,
@@ -46,7 +46,7 @@ class RegisterUser(Resource):
             role_id=role_id,  
             contact_number=data.get('contact_number'),
             farm_location=data.get('farm_location'),
-            status=data.get('status', 'Active')  # Default status to 'Active' if not provided
+            status=data.get('status', 'Active')  # Default status to 'Active' if not provided( user verification using email)
         )
 
         try:
@@ -61,9 +61,8 @@ class RegisterUser(Resource):
 main.add_url_rule('/register', view_func=RegisterUser.as_view('register_user'))
 
 
-soil_parameters_bp = Blueprint('soil_parameters', __name__)
-soil_parameters_api = Api(soil_parameters_bp)
 
+# --------------------------------------------------Soil parameters-----------------------------------------------------------
 soil_parameters_fields = {
     'id': fields.Integer,
     'user_id': fields.Integer,
@@ -76,22 +75,31 @@ soil_parameters_fields = {
     'rainfall': fields.Float,
 }
 
-class SoilParametersResource(Resource):
+class SoilParameters(Resource):
     @marshal_with(soil_parameters_fields)
     def post(self):
-        data = request.get_json()
+        data = request.json
+        
         new_soil_parameter = SoilParameters(
-            user_id=data['user_id'],
-            nitrogen_level=data['nitrogen_level'],
-            phosphorus_level=data['phosphorus_level'],
-            potassium_level=data['potassium_level'],
-            temperature=data['temperature'],
-            humidity=data['humidity'],
-            ph_level=data['ph_level'],
-            rainfall=data['rainfall'],
+            user_id=data.get['user_id'],
+            nitrogen_level=data.get['nitrogen_level'],
+            phosphorus_level=data.get['phosphorus_level'],
+            potassium_level=data.get['potassium_level'],
+            temperature=data.get['temperature'],
+            humidity=data.get['humidity'],
+            ph_level=data.get['ph_level'],
+            rainfall=data.get['rainfall'],
         )
-        db.session.add(new_soil_parameter)
-        db.session.commit()
-        return new_soil_parameter, 201
+        
+        try:
+            db.session.add(new_soil_parameter)
+            db.session.commit()
+            return new_soil_parameter, 201 
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Failed to store the soil parametes: {str(e)}'}, 500
 
-soil_parameters_api.add_resource(SoilParametersResource, '/soil-parameters')
+
+main.add_url_rule('/soil-parameters',view_func=SoilParameters.as_view('SoilParameters'))
+
+# --------------------------------------------------Reviews-----------------------------------------------------------
