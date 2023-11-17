@@ -1,5 +1,6 @@
 from . import db
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 
@@ -13,7 +14,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     First_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(255), nullable=False)
+    password = db.Column('password', db.String(255), nullable=False)  
     email = db.Column(db.String(255), unique=True, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
     role = db.relationship('Role', backref=db.backref('users', lazy=True))
@@ -23,6 +24,10 @@ class User(db.Model):
     status = db.Column(db.Enum('Active', 'Inactive'), server_default='Active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
+
+
+
     
   
 
@@ -78,5 +83,6 @@ class Review(db.Model):
     review_text = db.Column(db.Text)
     review_date = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     
     

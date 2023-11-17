@@ -1,87 +1,97 @@
 import datetime
-from flask import jsonify, request
-from app import app
-# from app.db_operations import get_all_users
-from app.models import Session, User
-from app import db 
-from werkzeug.security import generate_password_hash
-# from app.services import add_crop_details, add_soil_parameters, login_user, logout_user, register_user
+from flask import Blueprint, request
+from flask_restful import Api, Resource, marshal_with, fields , reqparse
+from app.models import Role, SoilParameters, User
+from app import db
+from werkzeug.security import check_password_hash
 
 
-@app.route('/login', methods=['POST'])
-def login_user():
-    data = request.get_json()
+main = Blueprint('main', __name__)
+api = Api(main)
 
-    # Check if the required fields are present
-    if not all(field in data for field in ['email', 'password']):
-        return jsonify({'error': 'Missing fields'}), 400
+login_bp = Blueprint('login', __name__)
+# login_api = Api(login_bp)
 
-    email = data['email']
-    password = data['password']
-
-    # Find the user by their email
-    user = User.query.filter_by(email=email).first()
-
-    # If the user doesn't exist or the password is incorrect, return an error
-    if not user or not user.check_password(password):
-        return jsonify({'error': 'Invalid credentials'}), 401
-
-    # Create a session for the user
-    Session['user_id'] = user.id
-
-    # Save the session in the database
-    new_session = Session(
-        user_id=user.id,
-        login_timestamp=datetime.utcnow()
-    )
-    db.session.add(new_session)
-    db.session.commit()
-
-    return jsonify({'message': 'Logged in successfully'}), 200
+user_fields = {
+    'id': fields.Integer,
+    'First_name': fields.String,
+    'last_name': fields.String,
+    'password': fields.String,
+    'email': fields.String,
+    'role_id': fields.Integer, 
+    'contact_number': fields.String,
+    'farm_location': fields.String,
+    'status': fields.String,
+}
 
 
-@app.route('/register', methods=['POST'])
-def register_user():
-    data = request.get_json()
+class RegisterUser(Resource):
+    @marshal_with(user_fields)  # Marshal the output with the defined fields
+    def post(self):
+        data = request.json
 
-    # Perform validation
-    required_fields = ['First_name', 'last_name', 'password', 'email', 'contact_number', 'farmer_location']
-    if not all(field in data for field in required_fields):
-        return jsonify({'error': 'Missing fields'}), 400
+        role_id = 2
+        role = Role.query.get(role_id)  
+        
 
-    # Additional validation (e.g., email format)
-    if not is_valid_email(data['email']):
-        return jsonify({'error': 'Invalid email format'}), 400
+        if not role:
+            return {'message': 'Role does not exist'}, 400
 
-    try:
-        # Check if the email already exists in the database
-        existing_user = User.query.filter_by(email=data['email']).first()
-        if existing_user:
-            return jsonify({'error': 'Email already exists'}), 409  # 409: Conflict
-
-        # Create a new user object and save it to the database
         new_user = User(
-            First_name=data['First_name'],
-            last_name=data['last_name'],
-            password=generate_password_hash(data['password']),  # Hashing the password
-            email=data['email'],
-            role_id=1,  # Default role ID for a farmer
-            contact_number=data['contact_number'],
-            farmer_location=data['farmer_location']
+            First_name=data.get('First_name'),
+            last_name=data.get('last_name'),
+            password=data.get('password'),
+            email=data.get('email'),
+            role=role,
+            role_id=role_id,  
+            contact_number=data.get('contact_number'),
+            farm_location=data.get('farm_location'),
+            status=data.get('status', 'Active')  # Default status to 'Active' if not provided
         )
-        db.session.add(new_user)
+
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            return new_user, 201  # Return the newly created user
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Failed to register user: {str(e)}'}, 500
+
+# Add the routes to the blueprint
+main.add_url_rule('/register', view_func=RegisterUser.as_view('register_user'))
+
+
+soil_parameters_bp = Blueprint('soil_parameters', __name__)
+soil_parameters_api = Api(soil_parameters_bp)
+
+soil_parameters_fields = {
+    'id': fields.Integer,
+    'user_id': fields.Integer,
+    'nitrogen_level': fields.Float,
+    'phosphorus_level': fields.Float,
+    'potassium_level': fields.Float,
+    'temperature': fields.Float,
+    'humidity': fields.Float,
+    'ph_level': fields.Float,
+    'rainfall': fields.Float,
+}
+
+class SoilParametersResource(Resource):
+    @marshal_with(soil_parameters_fields)
+    def post(self):
+        data = request.get_json()
+        new_soil_parameter = SoilParameters(
+            user_id=data['user_id'],
+            nitrogen_level=data['nitrogen_level'],
+            phosphorus_level=data['phosphorus_level'],
+            potassium_level=data['potassium_level'],
+            temperature=data['temperature'],
+            humidity=data['humidity'],
+            ph_level=data['ph_level'],
+            rainfall=data['rainfall'],
+        )
+        db.session.add(new_soil_parameter)
         db.session.commit()
-        return jsonify({'message': 'User registered successfully'}), 201  # 201: Created
+        return new_soil_parameter, 201
 
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500  # 500: Internal Server Error
-
-def is_valid_email(email):
-    # Simple email format check (you can enhance this validation)
-    return '@' in email
-
-
-
-if __name__ == '__main__':
-    app.run(debug= True)
+soil_parameters_api.add_resource(SoilParametersResource, '/soil-parameters')
