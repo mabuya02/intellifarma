@@ -36,6 +36,7 @@ class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', backref=db.backref('sessions', lazy=True))
+    session_token = db.Column(db.String(255), nullable=False)
     login_timestamp = db.Column(db.DateTime, nullable=False)
 
 
