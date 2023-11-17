@@ -8,6 +8,8 @@ from werkzeug.security import check_password_hash
 
 main = Blueprint('main', __name__)
 api = Api(main)
+soil_parameters_bp = Blueprint('soil_parameters', __name__)
+soil_parameters_api = Api(soil_parameters_bp)
 
 
 
@@ -63,6 +65,7 @@ main.add_url_rule('/register', view_func=RegisterUser.as_view('register_user'))
 
 
 # --------------------------------------------------Soil parameters-----------------------------------------------------------
+
 soil_parameters_fields = {
     'id': fields.Integer,
     'user_id': fields.Integer,
@@ -75,20 +78,20 @@ soil_parameters_fields = {
     'rainfall': fields.Float,
 }
 
-class SoilParameters(Resource):
+class SoilParametersResources(Resource):
     @marshal_with(soil_parameters_fields)
     def post(self):
         data = request.json
         
         new_soil_parameter = SoilParameters(
-            user_id=data.get['user_id'],
-            nitrogen_level=data.get['nitrogen_level'],
-            phosphorus_level=data.get['phosphorus_level'],
-            potassium_level=data.get['potassium_level'],
-            temperature=data.get['temperature'],
-            humidity=data.get['humidity'],
-            ph_level=data.get['ph_level'],
-            rainfall=data.get['rainfall'],
+            user_id=data.get('user_id'),
+            nitrogen_level=data.get('nitrogen_level'),
+            phosphorus_level=data.get('phosphorus_level'),
+            potassium_level=data.get('potassium_level'),
+            temperature=data.get('temperature'),
+            humidity=data.get('humidity'),
+            ph_level=data.get('ph_level'),
+            rainfall=data.get('rainfall'),
         )
         
         try:
@@ -97,9 +100,6 @@ class SoilParameters(Resource):
             return new_soil_parameter, 201 
         except Exception as e:
             db.session.rollback()
-            return {'message': f'Failed to store the soil parametes: {str(e)}'}, 500
+            return {'message': f'Failed to store the soil parameters: {str(e)}'}, 500
 
-
-main.add_url_rule('/soil-parameters',view_func=SoilParameters.as_view('SoilParameters'))
-
-# --------------------------------------------------Reviews-----------------------------------------------------------
+soil_parameters_api.add_url_rule('/soil_parameters', view_func=SoilParametersResources.as_view('soil_parameters'))
