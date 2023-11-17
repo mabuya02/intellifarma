@@ -31,9 +31,6 @@ class UserLogin(Resource):
 
         return jsonify({
             'message': 'Login successful',
-            'user_id': user.id,
-            'email': user.email,
-            'First_name': user.First_name,
             
         }), 200
 
