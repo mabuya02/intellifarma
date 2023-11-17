@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_farming/login.dart';
 import 'package:smart_farming/screen_constants.dart';
+import 'package:smart_farming/services/registration.dart';
 import 'package:smart_farming/textfield_widget.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _registerFormKey = GlobalKey<FormState>();
-  bool isLoading = false;
+  bool registerLoading = false;
   bool isHidden = true;
   bool isHidden2 = true;
   final TextEditingController emailController = TextEditingController();
@@ -322,13 +323,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       onTap: () {
                         if (_registerFormKey.currentState!.validate()) {
                           setState(() {
-                            isLoading = true;
+                            registerLoading = true;
                           });
-                          Future.delayed(const Duration(seconds: 2), () {
+                          register(
+                            context,
+                            firstNameController.text,
+                            lastNameController.text,
+                            emailController.text,
+                            passwordController.text,
+                            phoneNumberController.text,
+                            farmLocationController.text,
+                          );
+                          Future.delayed(const Duration(seconds: 1), () {
                             setState(() {
-                              isLoading = false;
+                              registerLoading = false;
                             });
-                            Navigator.pop(context);
                           });
                         }
                       },
@@ -342,7 +351,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderRadius: BorderRadius.circular(15.0),
                         ),
                         child: Center(
-                          child: isLoading
+                          child: registerLoading
                               ? const SizedBox(
                                   height: 30.0,
                                   width: 30.0,

@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
           secondary: const Color(0xff008000),
           background: const Color(0xffffffff),
           surfaceTint: const Color(0xffffffff),
+          error: Colors.red,
         ),
         useMaterial3: true,
       ),

@@ -2,9 +2,12 @@
 //
 //     final login = loginFromJson(jsonString);
 
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:smart_farming/bottom_navbar.dart';
 import 'package:smart_farming/constants/constants.dart';
 import 'package:smart_farming/soil_input.dart';
 
@@ -13,24 +16,27 @@ Login loginFromJson(String str) => Login.fromJson(json.decode(str));
 String loginToJson(Login data) => json.encode(data.toJson());
 
 class Login {
-    String message;
+  String message;
 
-    Login({
-        required this.message,
-    });
+  Login({
+    required this.message,
+  });
 
-    factory Login.fromJson(Map<String, dynamic> json) => Login(
+  factory Login.fromJson(Map<String, dynamic> json) => Login(
         message: json["message"],
-    );
+      );
 
-    Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "message": message,
-    };
+      };
 }
 
-
 // This function logs in the user by sending a POST request to the server.
-Future login(BuildContext context, String username, String password) async {
+Future login(
+  BuildContext context,
+  String email,
+  String password,
+) async {
   try {
     String base = baseUri;
     String login = loginUri;
@@ -40,7 +46,7 @@ Future login(BuildContext context, String username, String password) async {
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, dynamic>{
-        'username': username,
+        'email': email,
         'password': password,
       }),
     );
@@ -52,8 +58,7 @@ Future login(BuildContext context, String username, String password) async {
       return Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => SoilInputScreen(
-          ),
+          builder: (context) => const BottomNavBar(),
         ),
         (route) => false,
       );
@@ -93,7 +98,9 @@ Future login(BuildContext context, String username, String password) async {
           duration: const Duration(seconds: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
-              Radius.circular(MediaQuery.of(context).size.width * 0.02),
+              Radius.circular(
+                MediaQuery.of(context).size.width * 0.02,
+              ),
             ),
           ),
           behavior: SnackBarBehavior.floating,

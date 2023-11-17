@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_farming/bottom_navbar.dart';
 import 'package:smart_farming/register.dart';
 import 'package:smart_farming/screen_constants.dart';
+import 'package:smart_farming/services/login.dart';
 import 'package:smart_farming/textfield_widget.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _loginFormKey = GlobalKey<FormState>();
-  bool isLoading = false;
+  bool loginLoading = false;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isHidden = true;
@@ -178,17 +179,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: () {
                         if (_loginFormKey.currentState!.validate()) {
                           setState(() {
-                            isLoading = true;
+                            loginLoading = true;
                           });
-                          Future.delayed(const Duration(seconds: 2), () {
+                          login(
+                            context,
+                            emailController.text,
+                            passwordController.text,
+                          );
+                          Future.delayed(const Duration(seconds: 1), () {
                             setState(() {
-                              isLoading = false;
+                              loginLoading = false;
                             });
-                            Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const BottomNavBar()),
-                                (route) => false);
                           });
                         }
                       },
@@ -202,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(15.0),
                         ),
                         child: Center(
-                          child: isLoading
+                          child: loginLoading
                               ? const SizedBox(
                                   height: 30.0,
                                   width: 30.0,

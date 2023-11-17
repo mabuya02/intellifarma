@@ -2,6 +2,8 @@
 //
 //     final registration = registrationFromJson(jsonString);
 
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -65,7 +67,15 @@ class Registration {
 // }
 
 // This function logs in the user by sending a POST request to the server.
-Future register(BuildContext context, String username, String password) async {
+Future register(
+  BuildContext context,
+  String firstName,
+  String lastName,
+  String emailAddress,
+  String password,
+  String contactNumber,
+  String farmLocation,
+) async {
   try {
     String base = baseUri;
     String register = registerUri;
@@ -75,44 +85,24 @@ Future register(BuildContext context, String username, String password) async {
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, dynamic>{
-        'username': username,
-        'password': password,
+        "First_name": firstName,
+        "last_name": lastName,
+        "email": emailAddress,
+        "password": password,
+        "role_id": 2,
+        "contact_number": contactNumber,
+        "farm_location": farmLocation,
+        "status": "Active"
       }),
     );
 
-    String result = jsonDecode(response.body)['message'];
     if (response.statusCode == 200) {
-      final Map<String, dynamic> userResult = jsonDecode(response.body);
-
-      return Navigator.pushAndRemoveUntil(
+      return Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => LoginScreen(),
-        ),
-        (route) => false,
-      );
-    } else if (result == "Invalid Login credentials") {
-      var error = ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Invalid Login credentials',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          duration: const Duration(seconds: 1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(MediaQuery.of(context).size.width * 0.02),
-            ),
-          ),
-          behavior: SnackBarBehavior.floating,
+          builder: (_) => const LoginScreen(),
         ),
       );
-
-      return error;
     } else {
       var error = ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
