@@ -1,10 +1,9 @@
-import datetime
-import secrets
+
 from flask import Blueprint, jsonify, request
 from flask_restful import Api, Resource, marshal_with, fields
-from app.models import Role, Session, SoilParameters, User
+from app.models import Role,  SoilParameters, User
 from app import db
-from werkzeug.security import check_password_hash
+
 
 
 main = Blueprint('main', __name__)
