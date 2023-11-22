@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from flask_restful import Api, Resource, marshal_with, fields
 from app.models import Role,  SoilParameters, User
 from app import db
+import bcrypt
 
 
 
@@ -22,16 +23,12 @@ class UserLogin(Resource):
             return {'message': 'Email and password are required'}, 400
 
         user = User.query.filter_by(email=email).first()
-        
-        
-        if not user or user.password != password:
-            return {'message': 'Invalid credentials'}, 401
-        
 
-        return jsonify({
-            'message': 'Login successful',
-            
-        }), 200
+        if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+            return {'message': 'Invalid credentials'}, 401
+
+        return {'message': 'Login successful'}, 200
+
 
 # Add the login route to the main Blueprint
 main.add_url_rule('/login', view_func=UserLogin.as_view('user_login'))
@@ -60,11 +57,13 @@ class RegisterUser(Resource):
 
         if not role:
             return {'message': 'Role does not exist'}, 400
+        
+        hashed_password = bcrypt.hashpw(data.get('password').encode('utf-8'), bcrypt.gensalt())
 
         new_user = User(
             First_name=data.get('First_name'),
             last_name=data.get('last_name'),
-            password=data.get('password'),
+            password=hashed_password.decode('utf-8'),
             email=data.get('email'),
             role=role,
             role_id=role_id,
