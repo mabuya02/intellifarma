@@ -1,8 +1,10 @@
 
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 from flask_restful import Api, Resource, marshal_with, fields
-from app.models import Role,  SoilParameters, User
+from app.models import Role, Session,  SoilParameters, User
 from app import db
+from uuid import uuid4
 import bcrypt
 
 
@@ -26,8 +28,27 @@ class UserLogin(Resource):
 
         if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
             return {'message': 'Invalid credentials'}, 401
+        
+                # Generate a session token
+        session_token = str(uuid4())
 
-        return {'message': 'Login successful'}, 200
+        # Create a session for the user
+        new_session = Session(
+            user_id=user.id,
+            session_token=session_token,
+            login_timestamp=datetime.utcnow()
+        )
+        
+        try:
+            db.session.add(new_session)
+            db.session.commit()
+            return {
+                'message': 'Login successful',
+                'session_token': session_token
+            }, 200
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Failed to create session: {str(e)}'}, 500
 
 
 # Add the login route to the main Blueprint
