@@ -56,6 +56,7 @@ class RegisterUser(Resource):
 
         role_id = 2
         role = Role.query.get(role_id)
+        status = data.get('status') or 'Active'
 
         if not role:
             return {'message': 'Role does not exist'}, 400
@@ -69,8 +70,8 @@ class RegisterUser(Resource):
             role_id=role_id,
             contact_number=data.get('contact_number'),
             farm_location=data.get('farm_location'),
-            status=data.get('status', 'Active')
-            # Default status to 'Active' if not provided( user verification using email)
+            status=status
+            
         )
 
         try:
