@@ -146,7 +146,7 @@ class SoilParametersResources(Resource) :
 soil_parameters_api.add_resource(SoilParametersResources, '/soil-parameters')
 
 
-class 
+
 
 
 
