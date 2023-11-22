@@ -111,7 +111,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.text,
                     validator: (value) {
-                      if (value == null || value.isNotEmpty) {
+                      if (value == null || value.isEmpty) {
                         return 'Please provide a valid first name';
                       } else {
                         return null;
@@ -131,7 +131,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.text,
                     validator: (value) {
-                      if (value == null || value.isNotEmpty) {
+                      if (value == null || value.isEmpty) {
                         return 'Please provide a valid last name';
                       } else {
                         return null;
@@ -283,7 +283,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.phone,
                     validator: (value) {
-                      if (value == null || value.isNotEmpty) {
+                      if (value == null || value.isEmpty) {
                         return 'Please provide a valid phone number';
                       } else {
                         return null;
@@ -303,7 +303,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     textInputAction: TextInputAction.done,
                     keyboardType: TextInputType.streetAddress,
                     validator: (value) {
-                      if (value == null || value.isNotEmpty) {
+                      if (value == null || value.isEmpty) {
                         return 'Please provide a valid farm location';
                       } else {
                         return null;
