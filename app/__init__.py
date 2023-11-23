@@ -16,11 +16,12 @@ def create_app():
     migrate.init_app(app, db)
     api.init_app(app)
 
-    from app.routes import main,soil_parameters_bp
+    from app.routes import main,soil_parameters_bp,user_review_bp
 
     # Register the Blueprint with the Flask app
     app.register_blueprint(main)
     app.register_blueprint(soil_parameters_bp) 
+    app.register_blueprint(user_review_bp)
     
  
    

@@ -1,8 +1,9 @@
 
 from datetime import datetime
-from flask import Blueprint, jsonify, request
+from flask import Blueprint,  request
 from flask_restful import Api, Resource, marshal_with, fields
-from app.models import Role, Session,  SoilParameters, User
+from app.db_operations import get_soil_parameters_by_user
+from app.models import Review, Role, Session,  SoilParameters, User
 from app import db
 from uuid import uuid4
 import bcrypt
@@ -13,6 +14,8 @@ main = Blueprint('main', __name__)
 api = Api(main)
 soil_parameters_bp = Blueprint('soil_parameters', __name__)
 soil_parameters_api = Api(soil_parameters_bp)
+user_review_bp = Blueprint('review', __name__)
+user_review_api = Api(user_review_bp)
 
 
 class UserLogin(Resource):
@@ -147,6 +150,52 @@ soil_parameters_api.add_resource(SoilParametersResources, '/soil-parameters')
 
 
 
+class SoilParametersByUser(Resource):
+    def get(self, user_id):
+        user_parameters = get_soil_parameters_by_user(user_id)
+        # Convert the retrieved data into a serializable format (if needed)
+        serialized_data = [{
+            'id': param.id, 
+            'nitrogen_level': param.nitrogen_level,
+            'phosphorus_level':param.phosphorus_level,
+            'potassium_level':param.potassium_level,
+            'temperature':param.temperature,
+            'humidity':param.humidity,
+            'ph_level':param.ph_level,
+            'rainfall':param.rainfall,
+            } for param in user_parameters]
+        return serialized_data, 200
+
+# Add the endpoint to the API
+api.add_resource(SoilParametersByUser, '/soil-parameters/<int:user_id>')
 
 
-
+user_review_fields ={
+    'user_id': fields.Integer,
+    'prediction_id':fields.Integer,
+    'rating':fields.Integer,
+    'review_text':fields.String,
+    
+}
+class UserReviewResource(Resource):
+    @marshal_with(user_review_fields)
+    def post(self):
+        data = request.json
+        
+        new_user_review = Review(
+            user_id=data.get('user_id'),
+            prediction_id=data.get('prediction_id'),
+            rating=data.get('rating'),
+            review_text=data.get('review_text')
+          )
+        
+        try :
+            db.session.add(new_user_review)
+            db.session.commit()
+            return new_user_review, 201
+        except Exception as e :
+            db.session.rollback()
+            return{'message':f'Failed to store the user reviews: {str(e)}'},500
+        
+user_review_api.add_resource(UserReviewResource, '/user-reviews')
+        
