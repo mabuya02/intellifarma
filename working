@@ -52,3 +52,50 @@ class RegisterUser(Resource):
             return {'message': f'Failed to register user: {str(e)}'}, 500
 
 main.add_url_rule('/register', view_func=RegisterUser.as_view('register_user'))
+
+
+
+prediction_bp = Blueprint('prediction', __name__)
+# prediction_api = Api(prediction_bp)
+
+# class CropPredictionResource(Resource):
+#     def get(self, user_id):
+#         user_soil_params = get_soil_parameters_by_user(user_id)
+
+#         # Gather soil parameters for prediction
+#         feature_list = []
+#         for param in user_soil_params:
+#             features = [
+#                 param.nitrogen_level,
+#                 param.phosphorus_level,
+#                 param.potassium_level,
+#                 param.temperature,
+#                 param.humidity,
+#                 param.ph_level,
+#                 param.rainfall
+#             ]
+#             feature_list.append(features)
+
+#         # Make predictions using your ML model
+#         predictions = ml_model.predict(feature_list)
+
+#         # Output the predicted crops
+#         crop_names = []  # List to store predicted crop names
+#         for prediction in predictions:
+#             # Assuming `prediction` is an index or code indicating the crop
+#             # Replace this with your actual logic to map indices to crop names
+#             crop_name = map_index_to_crop_name(prediction)
+#             crop_names.append(crop_name)
+
+#         return {'predicted_crops': crop_names}, 200
+
+# # Add the endpoint to the API
+# prediction_api.add_resource(CropPredictionResource, '/predict-crop/<int:user_id>')
+# class UserReviewsResources(Resource):
+#     def get(self, user_id):
+#         user_review_params = get_all_user_reviews
+
+
+# yashvi.bhadania@strathmore.edu
+
+

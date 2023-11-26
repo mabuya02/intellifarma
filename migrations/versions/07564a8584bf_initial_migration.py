@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: 2d05b5de5277
+Revision ID: 07564a8584bf
 Revises: 
-Create Date: 2023-11-16 10:26:38.766145
+Create Date: 2023-11-25 18:42:01.648064
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2d05b5de5277'
+revision = '07564a8584bf'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,6 +21,8 @@ def upgrade():
     op.create_table('role',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('role_name', sa.String(length=50), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('role_name')
     )
@@ -35,6 +37,7 @@ def upgrade():
     sa.Column('farm_location', sa.String(length=255), nullable=True),
     sa.Column('registration_date', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.Column('status', sa.Enum('Active', 'Inactive'), server_default='Active', nullable=True),
+    sa.Column('activation_code', sa.String(length=6), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['role_id'], ['role.id'], ),
@@ -44,6 +47,7 @@ def upgrade():
     op.create_table('session',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('session_token', sa.String(length=255), nullable=False),
     sa.Column('login_timestamp', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -58,6 +62,8 @@ def upgrade():
     sa.Column('humidity', sa.Float(), nullable=True),
     sa.Column('ph_level', sa.Float(), nullable=True),
     sa.Column('rainfall', sa.Float(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -66,6 +72,8 @@ def upgrade():
     sa.Column('parameter_id', sa.Integer(), nullable=True),
     sa.Column('predicted_crop_name', sa.String(length=50), nullable=True),
     sa.Column('prediction_date', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['parameter_id'], ['soil_parameters.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -73,6 +81,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('crop_image', sa.String(length=255), nullable=True),
     sa.Column('prediction_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['prediction_id'], ['crop_prediction.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -83,6 +93,7 @@ def upgrade():
     sa.Column('rating', sa.Integer(), nullable=True),
     sa.Column('review_text', sa.Text(), nullable=True),
     sa.Column('review_date', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['prediction_id'], ['crop_prediction.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')

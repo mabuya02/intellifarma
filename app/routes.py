@@ -1,12 +1,12 @@
 
 from datetime import datetime
-from flask import Blueprint,  request
+from flask import Blueprint, jsonify,  request
 from flask_restful import Api, Resource, marshal_with, fields
-from app.db_operations import get_soil_parameters_by_user
 from app.models import Review, Role, Session,  SoilParameters, User
 from app import db
 from uuid import uuid4
 import bcrypt
+from app.services import  generate_activation_code, send_activation_code_email, send_activation_email, user_verification_email, user_verification_successfull
 
 
 
@@ -17,6 +17,9 @@ soil_parameters_api = Api(soil_parameters_bp)
 user_review_bp = Blueprint('review', __name__)
 user_review_api = Api(user_review_bp)
 
+user_activation_bp = Blueprint ('user',__name__)
+user_activation_api = Api(user_activation_bp)
+
 
 class UserLogin(Resource):
     def post(self):
@@ -26,13 +29,30 @@ class UserLogin(Resource):
 
         if not email or not password:
             return {'message': 'Email and password are required'}, 400
+        
+        status = "active"
+        
+        if not status:
+            return{'message':'Account is not verified'},400
 
         user = User.query.filter_by(email=email).first()
 
         if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
             return {'message': 'Invalid credentials'}, 401
         
-                # Generate a session token
+        
+        if user.status != 'Active':
+            # User not verified, send verification email and return a message
+            activation_code = send_activation_code_email(email)
+            if activation_code:
+                user_verification_email(email, activation_code)
+                message = f'Your account has not been verified. Verification code sent to your email: {email}.'
+                return {'message': message}, 400
+            else:
+                return {'message': 'Failed to send verification code'}, 500
+            
+
+         # Generate a session token
         session_token = str(uuid4())
 
         # Create a session for the user
@@ -70,19 +90,22 @@ user_fields = {
 }
 
 
-class RegisterUser(Resource):
-    @marshal_with(user_fields)  # Marshal the output with the defined fields
+class RegisterUser(Resource):  
     def post(self):
         data = request.json
+        
+        existing_user = User.query.filter_by(email=data.get('email')).first()
+        
 
         role_id = 2
         role = Role.query.get(role_id)
-        status = data.get('status') or 'Active'
+        status = data.get('status') or 'inactive'
 
         if not role:
             return {'message': 'Role does not exist'}, 400
         
         hashed_password = bcrypt.hashpw(data.get('password').encode('utf-8'), bcrypt.gensalt())
+        activation_code = generate_activation_code() 
 
         new_user = User(
             First_name=data.get('First_name'),
@@ -93,21 +116,44 @@ class RegisterUser(Resource):
             role_id=role_id,
             contact_number=data.get('contact_number'),
             farm_location=data.get('farm_location'),
-            status=status
-            
+            status=status,
+            activation_code=activation_code        
         )
-
+        if existing_user:
+            return {'message': 'Email already exists'}, 400
+        
         try:
             db.session.add(new_user)
             db.session.commit()
-            return new_user, 201  # Return the newly created user
+            send_activation_email(new_user.email, activation_code)
+            return jsonify({'message': 'Registered successfully. Verification code has been sent to your email address'}), 201
+        
         except Exception as e:
             db.session.rollback()
             return {'message': f'Failed to register user: {str(e)}'}, 500
-
-
-# Add the routes to the blueprint
 main.add_url_rule('/register', view_func=RegisterUser.as_view('register_user'))
+
+from flask import jsonify
+
+class ActivateUserResource(Resource):
+    def post(self):
+        data = request.json
+        email = data.get('email')
+        activation_code = data.get('activation_code')
+
+        user = User.query.filter_by(email=email, activation_code=activation_code).first()
+
+        if user:
+            user.status = 'Active'
+            user.activation_code = 'verified'
+            db.session.commit()
+            user_verification_successfull(email,user.First_name)
+            return jsonify({'message': 'User activated successfully'})
+        else:
+            return jsonify({'message': 'Invalid activation code or email'}), 400  
+
+user_activation_api.add_resource(ActivateUserResource, '/activate')
+
 
 soil_parameters_fields = {
     'id' : fields.Integer,
@@ -149,26 +195,28 @@ class SoilParametersResources(Resource) :
 soil_parameters_api.add_resource(SoilParametersResources, '/soil-parameters')
 
 
+#----------------------------------------------------------------------------------------------------------------------
+# class SoilParametersByUser(Resource):
+#       def get(self, user_id):
+#         latest_param = get_latest_soil_parameters_by_user(user_id)
+        
+#         if latest_param:
+#             serialized_data = {
+#                 'id': latest_param.id,
+#                 'nitrogen_level': latest_param.nitrogen_level,
+#                 'phosphorus_level': latest_param.phosphorus_level,
+#                 'potassium_level': latest_param.potassium_level,
+#                 'temperature': latest_param.temperature,
+#                 'humidity': latest_param.humidity,
+#                 'ph_level': latest_param.ph_level,
+#                 'rainfall': latest_param.rainfall
+#             }
+#             return prediction, 200
+#         else:
+#             return {'message': 'Prediction failed'}, 404
 
-class SoilParametersByUser(Resource):
-    def get(self, user_id):
-        user_parameters = get_soil_parameters_by_user(user_id)
-        # Convert the retrieved data into a serializable format (if needed)
-        serialized_data = [{
-            'id': param.id, 
-            'nitrogen_level': param.nitrogen_level,
-            'phosphorus_level':param.phosphorus_level,
-            'potassium_level':param.potassium_level,
-            'temperature':param.temperature,
-            'humidity':param.humidity,
-            'ph_level':param.ph_level,
-            'rainfall':param.rainfall,
-            } for param in user_parameters]
-        return serialized_data, 200
-
-# Add the endpoint to the API
-api.add_resource(SoilParametersByUser, '/soil-parameters/<int:user_id>')
-
+# api.add_resource(SoilParametersByUser, '/soil-parameters/<int:user_id>')
+#----------------------------------------------------------------------------------------------------------------------
 
 user_review_fields ={
     'user_id': fields.Integer,
@@ -198,4 +246,9 @@ class UserReviewResource(Resource):
             return{'message':f'Failed to store the user reviews: {str(e)}'},500
         
 user_review_api.add_resource(UserReviewResource, '/user-reviews')
+
+
+
+# class UserLogoutResource(Resource):
+    
         

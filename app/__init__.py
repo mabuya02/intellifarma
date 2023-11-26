@@ -1,12 +1,15 @@
-from flask import Flask
+from flask import Flask, app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config
 from flask_restful import Api
+from flask_mail import Mail
+
 
 db = SQLAlchemy()
 migrate = Migrate()
 api = Api()
+mail = Mail()
 
 def create_app():
     app = Flask(__name__)
@@ -15,15 +18,15 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     api.init_app(app)
+    mail.init_app(app)
 
-    from app.routes import main,soil_parameters_bp,user_review_bp
+    from app.routes import main,soil_parameters_bp,user_review_bp,user_activation_bp
 
     # Register the Blueprint with the Flask app
     app.register_blueprint(main)
     app.register_blueprint(soil_parameters_bp) 
     app.register_blueprint(user_review_bp)
+    app.register_blueprint(user_activation_bp)
     
- 
-   
-
+    
     return app

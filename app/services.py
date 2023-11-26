@@ -1,31 +1,55 @@
-from app import models
-from app.db_operations import get_soil_parameters_by_user
-from app import db  # Assuming this is where your SQLAlchemy instance resides
+from flask_mail import Message
+
+from app import mail
+import random
+import string
 
 
-user_id = 123  # Replace with the actual user ID
-user_soil_params = get_soil_parameters_by_user(user_id)
-# Function to make predictions for a specific user_id
-def predict_for_user(user_id):
-    feature_list = []
-    for param in user_soil_params:
-        features = [
-            param.nitrogen_level,
-            param.phosphorus_level,
-            param.potassium_level,
-            param.temperature,
-            param.humidity,
-            param.ph_level,
-            param.rainfall
-        ]
-        feature_list.append(features)
+from app.models import Session
 
-    # Prepare the data for prediction (convert to NumPy array or DataFrame)
-    # Assuming 'model' is your trained machine learning model
-    # Note: The exact data format needed might depend on how your model was trained
-    # Convert feature_list to a NumPy array or DataFrame, similar to the one used for training
+def generate_activation_code(length=6):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+def send_activation_email(email, activation_code):
+    msg = Message('Activate your Intellifarma Account', sender='noreply@intellifarma.com', recipients=[email])
+    msg.body = f'Your activation code is: {activation_code}. Use this code to activate your account.'
+    mail.send(msg)
+
+def send_activation_code_email(email):
+    activation_code = generate_activation_code()
+    try:
+        send_activation_email(email, activation_code)
+        return activation_code
+    except Exception as e:
+        return None
     
-    # Make predictions
-    predictions = models.predict(feature_list)
+    
+def user_verification_email(email, activation_code):
+    msg = Message('Activate your Intellifarma Account', sender='noreply@intellifarma.com', recipients=[email])
+    msg.body = f' Your tried logging in but you account has not been verfied. Kindly activate your account to login. Your activation code is: {activation_code}. Use this code to activate your account.'
+    mail.send(msg)
+    
+def user_verification_successfull(email,First_name):
+    msg = Message('Verification successfull', sender='noreply@intellifarma.com', recipients=[email])
+    msg.body = f'Hello {First_name}, \n  Welcome to Intellifarma! Your account has been successfully verified. '
+    mail.send(msg)
+    
+    
+# def predict_crop_for_user(serialized_data):
+#     data = {
+#         'nitrogen_level': [serialized_data['nitrogen_level']],
+#         'phosphorus_level': [serialized_data['phosphorus_level']],
+#         'potassium_level': [serialized_data['potassium_level']],
+#         'temperature': [serialized_data['temperature']],
+#         'humidity': [serialized_data['humidity']],
+#         'ph_level': [serialized_data['ph_level']],
+#         'rainfall': [serialized_data['rainfall']]
+#     }
+#     prepared_data = pd.DataFrame(data)
+    
+#     return prepared_data 
+    
+    
 
-    return predictions
+
+

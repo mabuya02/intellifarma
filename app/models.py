@@ -22,6 +22,7 @@ class User(db.Model):
     farm_location = db.Column(db.String(255))
     registration_date = db.Column(db.DateTime, server_default=db.func.now())
     status = db.Column(db.Enum('Active', 'Inactive'), server_default='Active')
+    activation_code = db.Column(db.String(50)) 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     
@@ -38,6 +39,7 @@ class Session(db.Model):
     user = db.relationship('User', backref=db.backref('sessions', lazy=True))
     session_token = db.Column(db.String(255), nullable=False)
     login_timestamp = db.Column(db.DateTime, nullable=False)
+    logout_timestamp = db.Column(db.DateTime, nullable=False)
 
 
 class SoilParameters(db.Model):
@@ -84,6 +86,6 @@ class Review(db.Model):
     review_text = db.Column(db.Text)
     review_date = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
     
     
