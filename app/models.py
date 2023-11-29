@@ -2,8 +2,6 @@ from . import db
 from datetime import datetime
 
 
-
-
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     role_name = db.Column(db.String(50), unique=True, nullable=False)
@@ -27,19 +25,13 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     
 
-
-
-    
-  
-
-
 class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', backref=db.backref('sessions', lazy=True))
     session_token = db.Column(db.String(255), nullable=False)
     login_timestamp = db.Column(db.DateTime, nullable=False)
-    logout_timestamp = db.Column(db.DateTime, nullable=False)
+    logout_timestamp = db.Column(db.DateTime, nullable=True)
 
 
 class SoilParameters(db.Model):

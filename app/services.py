@@ -1,11 +1,11 @@
 from flask_mail import Message
-
+import joblib
+import numpy as np
 from app import mail
 import random
 import string
+from app.db_operations import get_latest_soil_parameters_by_user
 
-
-from app.models import Session
 
 def generate_activation_code(length=6):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
@@ -26,28 +26,34 @@ def send_activation_code_email(email):
     
 def user_verification_email(email, activation_code):
     msg = Message('Activate your Intellifarma Account', sender='noreply@intellifarma.com', recipients=[email])
-    msg.body = f' Your tried logging in but you account has not been verfied. Kindly activate your account to login. Your activation code is: {activation_code}. Use this code to activate your account.'
+    msg.body = f' Your tried logging in but you account has not been verfied. \n Kindly activate your account to login. Your activation code is: {activation_code}. Use this code to activate your account.'
     mail.send(msg)
     
 def user_verification_successfull(email,First_name):
     msg = Message('Verification successfull', sender='noreply@intellifarma.com', recipients=[email])
     msg.body = f'Hello {First_name}, \n  Welcome to Intellifarma! Your account has been successfully verified. '
     mail.send(msg)
+
+model = joblib.load('ml_model/logisticregression_model.joblib')
+def predict_crop_for_user(user_id):
+    latest_params = get_latest_soil_parameters_by_user(user_id)
+    if latest_params:
+        features = [
+                latest_params.nitrogen_level,
+                latest_params.phosphorus_level,
+                latest_params.potassium_level,
+                latest_params.temperature,
+                latest_params.humidity,
+                latest_params.ph_level,
+                latest_params.rainfall
+            ]
+        
+    features_array = np.array(features).reshape(1, -1) 
     
+    prediction = model.predict(features_array)
     
-# def predict_crop_for_user(serialized_data):
-#     data = {
-#         'nitrogen_level': [serialized_data['nitrogen_level']],
-#         'phosphorus_level': [serialized_data['phosphorus_level']],
-#         'potassium_level': [serialized_data['potassium_level']],
-#         'temperature': [serialized_data['temperature']],
-#         'humidity': [serialized_data['humidity']],
-#         'ph_level': [serialized_data['ph_level']],
-#         'rainfall': [serialized_data['rainfall']]
-#     }
-#     prepared_data = pd.DataFrame(data)
-    
-#     return prepared_data 
+    return prediction[0]
+
     
     
 

@@ -2,24 +2,30 @@
 from datetime import datetime
 from flask import Blueprint, jsonify,  request
 from flask_restful import Api, Resource, marshal_with, fields
-from app.models import Review, Role, Session,  SoilParameters, User
+from app.db_operations import get_latest_soil_parameters_by_user
+from app.models import CropPrediction, Review, Role, Session,  SoilParameters, User
 from app import db
 from uuid import uuid4
 import bcrypt
-from app.services import  generate_activation_code, send_activation_code_email, send_activation_email, user_verification_email, user_verification_successfull
-
+from app.services import  generate_activation_code, predict_crop_for_user, send_activation_code_email, send_activation_email, user_verification_email, user_verification_successfull
 
 
 main = Blueprint('main', __name__)
 api = Api(main)
 soil_parameters_bp = Blueprint('soil_parameters', __name__)
 soil_parameters_api = Api(soil_parameters_bp)
+
 user_review_bp = Blueprint('review', __name__)
 user_review_api = Api(user_review_bp)
 
 user_activation_bp = Blueprint ('user',__name__)
 user_activation_api = Api(user_activation_bp)
 
+logout_user_bp = Blueprint('session',__name__)
+logout_user_api = Api(logout_user_bp)
+
+all_reviews_bp = Blueprint('review',__name__)
+all_reviews_api = Api(all_reviews_bp)
 
 class UserLogin(Resource):
     def post(self):
@@ -196,27 +202,24 @@ soil_parameters_api.add_resource(SoilParametersResources, '/soil-parameters')
 
 
 #----------------------------------------------------------------------------------------------------------------------
-# class SoilParametersByUser(Resource):
-#       def get(self, user_id):
-#         latest_param = get_latest_soil_parameters_by_user(user_id)
-        
-#         if latest_param:
-#             serialized_data = {
-#                 'id': latest_param.id,
-#                 'nitrogen_level': latest_param.nitrogen_level,
-#                 'phosphorus_level': latest_param.phosphorus_level,
-#                 'potassium_level': latest_param.potassium_level,
-#                 'temperature': latest_param.temperature,
-#                 'humidity': latest_param.humidity,
-#                 'ph_level': latest_param.ph_level,
-#                 'rainfall': latest_param.rainfall
-#             }
-#             return prediction, 200
-#         else:
-#             return {'message': 'Prediction failed'}, 404
 
-# api.add_resource(SoilParametersByUser, '/soil-parameters/<int:user_id>')
+class SoilParametersByUser(Resource):
+    def get(self, user_id):
+        prediction =  predict_crop_for_user(user_id)
+        crop_prediction = CropPrediction(
+            parameter_id=get_latest_soil_parameters_by_user.latest_param.id,
+            predicted_crop_name=str(prediction[0]), 
+            prediction_date=datetime.utcnow()  
+        )
+        db.session.add(crop_prediction)
+        db.session.commit()
+        
+        return prediction[0]
+api.add_resource(SoilParametersByUser, '/soil-parameters/<int:user_id>')
+
 #----------------------------------------------------------------------------------------------------------------------
+
+
 
 user_review_fields ={
     'user_id': fields.Integer,
@@ -247,8 +250,37 @@ class UserReviewResource(Resource):
         
 user_review_api.add_resource(UserReviewResource, '/user-reviews')
 
+class AllReviews(Resource):
+    def get(self):
+        reviews = Review.query.all()
+        review_list = []
+
+        for review in reviews:
+            review_info = {
+                'user_name': review.user.First_name, 
+                'rating': review.rating,
+                'comment': review.review_text,
+                'review_date': review.review_date.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            review_list.append(review_info)
+
+        return jsonify({'reviews': review_list})
+    
+all_reviews_api.add_resource(AllReviews, '/all-reviews')
 
 
-# class UserLogoutResource(Resource):
+
+
+class LogoutResource(Resource):
+    def post(self, user_id):
+        sessions = Session.query.filter_by(user_id=user_id).all()
+
+        for session in sessions:
+            session.logout_timestamp = datetime.now()
+
+        db.session.commit()
+
+        return {'message': 'Logged out successfully'}, 200
+logout_user_api.add_resource(LogoutResource, '/logout/<int:user_id>')
     
         

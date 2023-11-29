@@ -20,13 +20,14 @@ def create_app():
     api.init_app(app)
     mail.init_app(app)
 
-    from app.routes import main,soil_parameters_bp,user_review_bp,user_activation_bp
+    from app.routes import main,soil_parameters_bp,user_review_bp,logout_user_bp,all_reviews_bp
 
     # Register the Blueprint with the Flask app
     app.register_blueprint(main)
     app.register_blueprint(soil_parameters_bp) 
-    app.register_blueprint(user_review_bp)
-    app.register_blueprint(user_activation_bp)
+    app.register_blueprint(all_reviews_bp)
+    app.register_blueprint(logout_user_bp)
+    
     
     
     return app
