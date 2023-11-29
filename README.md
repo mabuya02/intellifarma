@@ -152,7 +152,11 @@ intellifarma/
 ├── run.py
 ├── secret.py
 ```
-
+## Run the flask application
+Run the following command tp start the flask server:
+```
+   flask run
+```
 ## Contributing
 
 If you would like to contribute to the project, follow these steps:
