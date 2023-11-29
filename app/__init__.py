@@ -28,6 +28,7 @@ def create_app():
     app.register_blueprint(logout_user_bp)
     app.register_blueprint(user_activation_bp)
     app.register_blueprint(user_review_bp)
+    app.register_blueprint(all_reviews_bp, name='all_reviews')
     
     
     
