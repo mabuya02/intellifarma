@@ -31,10 +31,10 @@ def user_verification_email(email, activation_code):
     
 def user_verification_successfull(email,First_name):
     msg = Message('Verification successfull', sender='noreply@intellifarma.com', recipients=[email])
-    msg.body = f'Hello {First_name}, \n  Welcome to Intellifarma! Your account has been successfully verified. '
+    msg.body = f'Hello {First_name},Welcome to Intellifarma! Your account has been successfully verified. '
     mail.send(msg)
 
-model = joblib.load('ml_model/logisticregression_model.joblib')
+model = joblib.load('ml_model/smart_farmingmodel.joblib')
 def predict_crop_for_user(user_id):
     latest_params = get_latest_soil_parameters_by_user(user_id)
     if latest_params:
@@ -52,7 +52,7 @@ def predict_crop_for_user(user_id):
     
     prediction = model.predict(features_array)
     
-    return prediction[0]
+    return prediction.tolist() if prediction is not None else None  # Convert prediction to list
 
     
     

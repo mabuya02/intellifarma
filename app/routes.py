@@ -153,7 +153,7 @@ class ActivateUserResource(Resource):
             user.status = 'Active'
             user.activation_code = 'verified'
             db.session.commit()
-            user_verification_successfull(email,user.First_name)
+            user_verification_successfull(email,User.First_name)
             return jsonify({'message': 'User activated successfully'})
         else:
             return jsonify({'message': 'Invalid activation code or email'}), 400  
@@ -207,15 +207,19 @@ class SoilParametersByUser(Resource):
     def get(self, user_id):
         latest_param = get_latest_soil_parameters_by_user(user_id)
         prediction =  predict_crop_for_user(user_id)
-        crop_prediction = CropPrediction(
-            parameter_id=latest_param.id,
-            predicted_crop_name=str(prediction[0]), 
-            prediction_date=datetime.utcnow()  
-        )
-        db.session.add(crop_prediction)
-        db.session.commit()
+        if prediction is not None and len(prediction) > 0:
+            crop_prediction = CropPrediction(
+                parameter_id=latest_param.id,
+                predicted_crop_name=str(prediction[0]),
+                prediction_date=datetime.utcnow()
+            )
+            db.session.add(crop_prediction)
+            db.session.commit()
+
+            return jsonify({'prediction': prediction})  # Return the entire prediction list
+        else:
+            return jsonify({'message': 'Prediction failed '}), 404 
         
-        return prediction[0]
 api.add_resource(SoilParametersByUser, '/soil-parameters/<int:user_id>')
 
 #----------------------------------------------------------------------------------------------------------------------
