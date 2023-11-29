@@ -153,7 +153,7 @@ class ActivateUserResource(Resource):
             user.status = 'Active'
             user.activation_code = 'verified'
             db.session.commit()
-            user_verification_successfull(email,User.First_name)
+            user_verification_successfull(email)
             return jsonify({'message': 'User activated successfully'})
         else:
             return jsonify({'message': 'Invalid activation code or email'}), 400  
