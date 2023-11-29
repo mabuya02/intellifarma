@@ -28,11 +28,15 @@ A Regression Model to Optimize Crop Selection for Kenya’s Staple Food Farmers.
     cd your-project
     ```
 
-3. (Optional) Create and activate a virtual environment:
+3. Create and activate a virtual environment:
 
     ```bash
     python -m venv venv      # Create a virtual environment
+    ```
+    ```bash
     source venv/bin/activate  # Activate on Linux or macOS
+    ```
+   ```bash
     .\venv\Scripts\activate   # Activate on Windows
     ```
 
