@@ -25,7 +25,6 @@ def create_app():
     # Register the Blueprint with the Flask app
     app.register_blueprint(main)
     app.register_blueprint(soil_parameters_bp) 
-    app.register_blueprint(all_reviews_bp)
     app.register_blueprint(logout_user_bp)
     app.register_blueprint(user_activation_bp)
     app.register_blueprint(user_review_bp)
