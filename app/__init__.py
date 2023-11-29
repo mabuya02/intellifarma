@@ -20,7 +20,7 @@ def create_app():
     api.init_app(app)
     mail.init_app(app)
 
-    from app.routes import main,soil_parameters_bp,logout_user_bp,all_reviews_bp,user_activation_bp
+    from app.routes import main,soil_parameters_bp,logout_user_bp,all_reviews_bp,user_activation_bp,user_review_bp
 
     # Register the Blueprint with the Flask app
     app.register_blueprint(main)
@@ -28,6 +28,7 @@ def create_app():
     app.register_blueprint(all_reviews_bp)
     app.register_blueprint(logout_user_bp)
     app.register_blueprint(user_activation_bp)
+    app.register_blueprint(user_review_bp)
     
     
     
