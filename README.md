@@ -12,7 +12,7 @@
 
 ## Introduction
 
-A Regression Model to Optimize Crop Selection for Kenya’s Staple Food Farmers.
+The project runs a Machine learning model  to suggest the most suitable crop based on the soil parameters that the user inputs. Additionally, the model is trained using the Logistic Regression algorithm. The ML model is deployed via a mobile application built with Flutter and Flask.
 
 ## Installation
 
