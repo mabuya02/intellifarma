@@ -165,5 +165,5 @@ If you would like to contribute to the project, follow these steps:
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/mabuya02/intellifarma/blob/main/LICENSE) file for details.
+This project is licensed under the [GNU License](https://github.com/mabuya02/intellifarma/blob/main/LICENSE) file for details.
 
