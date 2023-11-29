@@ -205,9 +205,10 @@ soil_parameters_api.add_resource(SoilParametersResources, '/soil-parameters')
 
 class SoilParametersByUser(Resource):
     def get(self, user_id):
+        latest_param = get_latest_soil_parameters_by_user(user_id)
         prediction =  predict_crop_for_user(user_id)
         crop_prediction = CropPrediction(
-            parameter_id=get_latest_soil_parameters_by_user.latest_param.id,
+            parameter_id=latest_param.id,
             predicted_crop_name=str(prediction[0]), 
             prediction_date=datetime.utcnow()  
         )
