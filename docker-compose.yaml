@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 
 services:
   flask-app:
@@ -6,26 +6,40 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"  # Map Flask app port to host
-    environment:
-      - DB_USERNAME=root
-      - DB_PASSWORD=
-      - DB_HOST=localhost
-      - DB_NAME=intellifarma
-      # Add other environment variables as needed
+      - "5000:5000"
+    env_file:
+      - .env
     depends_on:
       - database
+    environment:
+      - FLASK_ENV=production
 
   database:
-    image: mysql:latest  # Use the appropriate database image
+    image: mysql:5.7
     environment:
       - MYSQL_ROOT_PASSWORD=your_root_password_here
       - MYSQL_DATABASE=intellifarma
-      - MAIL_SERVER=smtp.gmail.com
-      - MAIL_PORT=587
-      - MAIL_USERNAME=smartfarming101@gmail.com
-      - MAIL_PASSWORD=ltfd jmge jrum hdox
-      - MAIL_USE_TLS=true  # or 'false' depending on your setup
-      - MAIL_USE_SSL=false
     ports:
-      - "3306:3306"  # Map database port to host
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d  # Mount Nginx configuration files
+      - ./nginx/certs:/etc/nginx/certs  # Mount SSL certificates
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certs:/etc/letsencrypt
+      - ./nginx/html:/usr/share/nginx/html
+    command: certonly --webroot --webroot-path=/usr/share/nginx/html --email your_email@example.com --agree-tos --no-eff-email -d your_domain.com
+
+volumes:
+  mysql_data:
+  # Add other volumes here as necessary.
