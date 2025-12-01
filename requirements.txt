@@ -16,7 +16,7 @@ Flask-Mail==0.9.1
 Flask-Migrate==4.0.5
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
-fonttools==4.44.3
+fonttools==4.61.0
 gunicorn==21.2.0
 ipython==8.17.2
 ipywidgets==8.1.1
